@@ -61,12 +61,12 @@ class SecurityDashboard:
         )
         
         if st.sidebar.button("Refresh Now"):
-            st.experimental_rerun()
+            st.rerun()
         
         # Auto refresh
         if st.sidebar.checkbox("Auto refresh", value=True):
             time.sleep(refresh_rate)
-            st.experimental_rerun()
+            st.rerun()
         
         # Filter settings
         st.sidebar.subheader("Filter Settings")

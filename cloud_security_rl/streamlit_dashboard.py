@@ -190,17 +190,39 @@ class SecurityDashboard:
                 x=df.index,
                 y=df['inference_latency'] * 1000,  # Convert to ms
                 name=f"{agent_id} ({df['role'].iloc[0]})",
-                mode='lines'
+                mode='lines',
+                line=dict(width=2),
+                hovertemplate='Time: %{x}<br>Latency: %{y:.2f} ms<extra></extra>'
             ))
         
         fig.update_layout(
-            title="Agent Inference Latency",
+            title={
+                'text': "Agent Inference Latency",
+                'y':0.95,
+                'x':0.5,
+                'xanchor': 'center',
+                'yanchor': 'top',
+                'font': dict(size=20)
+            },
             xaxis_title="Time",
             yaxis_title="Latency (ms)",
-            height=400
+            height=500,
+            template="plotly_dark",
+            hovermode='x unified',
+            legend=dict(
+                yanchor="top",
+                y=0.99,
+                xanchor="left",
+                x=0.01,
+                bgcolor="rgba(255, 255, 255, 0.1)"
+            ),
+            margin=dict(l=60, r=30, t=50, b=50)
         )
         
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, use_container_width=True, config={
+            'displayModeBar': True,
+            'scrollZoom': True
+        })
     
     def show_resource_metrics(self, run_dir):
         """Display resource usage metrics"""
@@ -226,17 +248,39 @@ class SecurityDashboard:
                     x=df.index,
                     y=df[metric],
                     name=f"{agent_id} ({df['role'].iloc[0]})",
-                    mode='lines'
+                    mode='lines',
+                    line=dict(width=2),
+                    hovertemplate='Time: %{x}<br>Value: %{y:.1f}<extra></extra>'
                 ))
         
         fig.update_layout(
-            title=title,
+            title={
+                'text': title,
+                'y':0.95,
+                'x':0.5,
+                'xanchor': 'center',
+                'yanchor': 'top',
+                'font': dict(size=18)
+            },
             xaxis_title="Time",
             yaxis_title=title,
-            height=300
+            height=400,
+            template="plotly_dark",
+            hovermode='x unified',
+            legend=dict(
+                yanchor="top",
+                y=0.99,
+                xanchor="left",
+                x=0.01,
+                bgcolor="rgba(255, 255, 255, 0.1)"
+            ),
+            margin=dict(l=60, r=30, t=50, b=50)
         )
         
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, use_container_width=True, config={
+            'displayModeBar': True,
+            'scrollZoom': True
+        })
     
     def show_action_metrics(self, run_dir):
         """Display action-related metrics"""

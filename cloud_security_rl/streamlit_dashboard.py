@@ -263,11 +263,18 @@ class SecurityDashboard:
     
     def health_indicator(self, label, value, color):
         """Display a health indicator"""
+        # Create color indicator emoji
+        color_indicator = {
+            "green": "🟢",
+            "yellow": "🟡",
+            "red": "🔴"
+        }.get(color, "⚪")
+        
+        # Display metric with color indicator
         st.metric(
-            label=label,
+            label=f"{color_indicator} {label}",
             value=value,
-            delta=None,
-            delta_color=color
+            delta=None
         )
     
     def get_latest_run(self):

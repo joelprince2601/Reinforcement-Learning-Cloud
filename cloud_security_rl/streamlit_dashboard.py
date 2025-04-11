@@ -429,76 +429,199 @@ class SecurityDashboard:
     
     def show_documentation(self):
         """Display dashboard documentation"""
-        st.markdown("""
-        ## Overview
-        This dashboard provides real-time monitoring and visualization of a Reinforcement Learning-based cloud security system. 
-        The system uses multiple specialized agents to detect and respond to potential security threats.
+        # Create tabs for different documentation sections
+        doc_tab1, doc_tab2, doc_tab3 = st.tabs(["Overview & Features", "Technical Details", "Algorithms & Formulas"])
         
-        ## Dashboard Sections
-        
-        ### 1. Agent Performance Metrics
-        - **Latency**: Shows the response time of each agent in milliseconds
-        - **Resource Usage**: Displays CPU and memory utilization
-        - **Actions**: Lists the actions taken by each agent and their success rates
-        
-        ### 2. System Status
-        - **System Health**: Overall system status indicator
-        - **Active Agents**: Number of operational agents
-        - **Alert Level**: Current security alert level
-        - **Active Threats**: Real-time display of detected security threats
-        
-        ### 3. Agent Roles
-        
-        #### Network Monitor
-        - Monitors network traffic patterns
-        - Detects unusual network activity
-        - Responds to potential DDoS attacks
-        
-        #### User Activity Monitor
-        - Tracks user login attempts
-        - Monitors session activities
-        - Identifies suspicious user behavior
-        
-        #### Resource Monitor
-        - Tracks CPU and memory usage
-        - Monitors system resources
-        - Detects resource exhaustion attacks
-        
-        #### Attack Detector
-        - Analyzes patterns for potential attacks
-        - Correlates security events
-        - Identifies attack signatures
-        
-        #### Response Coordinator
-        - Coordinates response actions
-        - Manages threat mitigation
-        - Orchestrates system-wide responses
-        
-        ## Dashboard Controls
-        
-        ### Refresh Settings
-        - **Refresh Interval**: Control how often the dashboard updates
-        - **Auto Refresh**: Toggle automatic updates
-        - **Manual Refresh**: Force an immediate update
-        
-        ### Filter Settings
-        - **Agent Roles**: Select which agent types to display
-        - **Time Range**: Choose the time window for displayed data
-        
-        ## Data Visualization
-        The dashboard uses various visualization types:
-        - Line charts for temporal metrics
-        - Status indicators for system health
-        - Alert boxes for active threats
-        - Data tables for detailed metrics
-        
-        ## Interpreting the Data
-        - **Green** indicators show normal operation
-        - **Yellow** indicators suggest attention needed
-        - **Red** indicators require immediate attention
-        - Spikes in latency graphs may indicate attacks
-        - Resource usage patterns help identify abnormal behavior
-        """)
+        with doc_tab1:
+            st.markdown("""
+            ## Overview
+            This dashboard provides real-time monitoring and visualization of a Reinforcement Learning-based cloud security system. 
+            The system uses multiple specialized agents to detect and respond to potential security threats.
+            
+            ## Dashboard Sections
+            
+            ### 1. Agent Performance Metrics
+            - **Latency**: Shows the response time of each agent in milliseconds
+            - **Resource Usage**: Displays CPU and memory utilization
+            - **Actions**: Lists the actions taken by each agent and their success rates
+            
+            ### 2. System Status
+            - **System Health**: Overall system status indicator
+            - **Active Agents**: Number of operational agents
+            - **Alert Level**: Current security alert level
+            - **Active Threats**: Real-time display of detected security threats
+            
+            ### 3. Agent Roles
+            
+            #### Network Monitor
+            - Monitors network traffic patterns
+            - Detects unusual network activity
+            - Responds to potential DDoS attacks
+            
+            #### User Activity Monitor
+            - Tracks user login attempts
+            - Monitors session activities
+            - Identifies suspicious user behavior
+            
+            #### Resource Monitor
+            - Tracks CPU and memory usage
+            - Monitors system resources
+            - Detects resource exhaustion attacks
+            
+            #### Attack Detector
+            - Analyzes patterns for potential attacks
+            - Correlates security events
+            - Identifies attack signatures
+            
+            #### Response Coordinator
+            - Coordinates response actions
+            - Manages threat mitigation
+            - Orchestrates system-wide responses
+            """)
+            
+        with doc_tab2:
+            st.markdown("""
+            ## Technical Architecture
+            
+            ### Reinforcement Learning Framework
+            The system implements a **Multi-Agent Deep Q-Network (MADQN)** architecture with the following components:
+            
+            1. **State Space**
+               - Network traffic features (packets/sec, bytes/sec)
+               - System metrics (CPU, memory, disk I/O)
+               - User activity patterns
+               - Historical attack patterns
+            
+            2. **Action Space**
+               - Block IP addresses
+               - Scale resources
+               - Enable CAPTCHA
+               - Reset connections
+               - Update security rules
+            
+            3. **Reward Function**
+               ```
+               R = w₁ * S + w₂ * (1-L) + w₃ * (1-F) - w₄ * C
+               ```
+               where:
+               - S = Success rate of threat mitigation
+               - L = Normalized latency impact
+               - F = False positive rate
+               - C = Resource cost
+               - w₁, w₂, w₃, w₄ = Importance weights
+            
+            ### Key Technical Terms
+            
+            1. **Inference Latency**
+               - Time taken for an agent to process inputs and decide actions
+               - Measured in milliseconds
+               - Critical for real-time response
+            
+            2. **Anomaly Score**
+               ```
+               A = |x - μ| / σ
+               ```
+               - x = Current metric value
+               - μ = Historical mean
+               - σ = Standard deviation
+            
+            3. **Threat Detection Confidence**
+               ```
+               C = (TP/(TP + FP)) * (TN/(TN + FN))
+               ```
+               - TP = True Positives
+               - FP = False Positives
+               - TN = True Negatives
+               - FN = False Negatives
+            
+            4. **Resource Utilization Index**
+               ```
+               RUI = α*CPU + β*Memory + γ*Network
+               ```
+               - α, β, γ = Resource weight coefficients
+               - Values normalized to [0,1]
+            """)
+            
+        with doc_tab3:
+            st.markdown("""
+            ## Algorithms & Formulas
+            
+            ### 1. Deep Q-Network (DQN)
+            Each agent uses a DQN with the following architecture:
+            - Input Layer: State dimension (varies by agent role)
+            - Hidden Layers: 3 fully connected layers (256, 128, 64 neurons)
+            - Output Layer: Action space dimension
+            
+            #### Q-Learning Update
+            ```
+            Q(s,a) ← Q(s,a) + α[r + γ*max_a'Q(s',a') - Q(s,a)]
+            ```
+            - α = Learning rate
+            - γ = Discount factor
+            - r = Immediate reward
+            - s' = Next state
+            
+            ### 2. Threat Detection
+            
+            #### Network Anomaly Score
+            ```
+            NA = Σ(w_i * |x_i - μ_i| / σ_i)
+            ```
+            - x_i = Current metric value
+            - μ_i = Historical mean
+            - σ_i = Standard deviation
+            - w_i = Feature weight
+            
+            #### Attack Probability
+            ```
+            P(attack) = 1 / (1 + e^(-z))
+            where z = Σ(β_j * NA_j)
+            ```
+            
+            ### 3. Resource Management
+            
+            #### Auto-scaling Threshold
+            ```
+            ST = μ_cpu + k * σ_cpu
+            ```
+            - μ_cpu = Mean CPU utilization
+            - σ_cpu = CPU utilization standard deviation
+            - k = Sensitivity parameter
+            
+            #### Response Time Prediction
+            ```
+            RT = S / (C - λ)
+            ```
+            - S = Service time
+            - C = System capacity
+            - λ = Arrival rate
+            
+            ### 4. Performance Metrics
+            
+            #### Agent Efficiency Score
+            ```
+            E = (Successful_Actions / Total_Actions) * (1 - Latency/Max_Latency)
+            ```
+            
+            #### System Health Index
+            ```
+            H = (1/n) * Σ(1 - Metric_i/Threshold_i)
+            ```
+            
+            ### 5. Coordination Algorithm
+            
+            #### Action Priority Score
+            ```
+            P(a) = (Impact(a) * Urgency(a)) / Cost(a)
+            ```
+            
+            #### Consensus Decision
+            ```
+            D = argmax_a Σ(w_i * Score_i(a))
+            ```
+            - w_i = Agent weight
+            - Score_i(a) = Action score from agent i
+            """)
 
 if __name__ == "__main__":
     dashboard = SecurityDashboard()

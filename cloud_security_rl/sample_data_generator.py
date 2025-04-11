@@ -8,7 +8,8 @@ import os
 def generate_sample_data():
     """Generate sample monitoring data for the dashboard"""
     # Create results directory
-    base_dir = Path("results")
+    script_dir = Path(__file__).parent
+    base_dir = script_dir / "results"
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     run_dir = base_dir / timestamp
     run_dir.mkdir(parents=True, exist_ok=True)

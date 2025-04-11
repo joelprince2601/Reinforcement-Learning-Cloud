@@ -11,7 +11,7 @@ from .agent_roles import AgentRole, AgentRoleManager
 
 class SecurityDashboard:
     def __init__(self):
-        self.results_dir = Path("results")
+        self.results_dir = Path(__file__).parent / "results"
         self.role_manager = AgentRoleManager()
         
         # Setup page config
@@ -24,7 +24,7 @@ class SecurityDashboard:
         # Initialize sample data if needed
         if not self.results_dir.exists() or not list(self.results_dir.glob("*")):
             st.info("No monitoring data found. Generating sample data...")
-            from sample_data_generator import generate_sample_data
+            from .sample_data_generator import generate_sample_data
             generate_sample_data()
         
     def run(self):

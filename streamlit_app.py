@@ -1,11 +1,10 @@
 import sys
 from pathlib import Path
 
-# Add the project root to Python path
-project_root = Path(__file__).parent
-sys.path.append(str(project_root))
+# Add the current directory to Python path
+sys.path.append(str(Path(__file__).parent))
 
-# Import and run the dashboard
+# Import the dashboard
 from cloud_security_rl.streamlit_dashboard import SecurityDashboard
 
 if __name__ == "__main__":

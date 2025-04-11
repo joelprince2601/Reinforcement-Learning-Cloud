@@ -7,7 +7,7 @@ import json
 import time
 from datetime import datetime, timedelta
 import numpy as np
-from agent_roles import AgentRole, AgentRoleManager
+from .agent_roles import AgentRole, AgentRoleManager
 
 class SecurityDashboard:
     def __init__(self):

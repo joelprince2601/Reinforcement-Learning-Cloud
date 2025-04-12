@@ -434,46 +434,63 @@ class SecurityDashboard:
         """Display attack analysis and agent performance during attacks"""
         st.header("🎯 Attack Analysis & Response Performance")
         
-        # Attack type selector
-        attack_type = st.selectbox(
-            "Select Attack Type",
-            [
-                "DDoS Attack",
-                "Brute Force Login",
-                "Resource Exhaustion",
-                "Data Exfiltration",
-                "SQL Injection",
-                "Zero-Day Exploit"
-            ]
-        )
+        # Debug info
+        st.info("Loading attack analysis view...")
         
-        # Create two columns for metrics and visualization
-        col1, col2 = st.columns([1, 2])
+        try:
+            # Attack type selector with default value
+            attack_type = st.selectbox(
+                "Select Attack Type",
+                options=[
+                    "DDoS Attack",
+                    "Brute Force Login",
+                    "Resource Exhaustion",
+                    "Data Exfiltration",
+                    "SQL Injection",
+                    "Zero-Day Exploit"
+                ],
+                index=0  # Set default selection
+            )
+            
+            # Create expanders for better organization
+            with st.expander("Attack Details", expanded=True):
+                # Create two columns for metrics and visualization
+                col1, col2 = st.columns([1, 2])
+                
+                with col1:
+                    st.subheader("Attack Metrics")
+                    
+                    # Show attack-specific metrics
+                    metrics = self.get_attack_metrics(attack_type)
+                    
+                    # Display metrics with colors
+                    st.metric("⏱️ Detection Time", metrics["detection_time"])
+                    st.metric("✅ Mitigation Success", metrics["mitigation_success"])
+                    st.metric("🎯 False Positive Rate", metrics["false_positive_rate"])
+                    st.metric("⚡ Agent Response Time", metrics["response_time"])
+                    
+                    # Show involved agents
+                    st.subheader("🤖 Responding Agents")
+                    for agent in metrics["responding_agents"]:
+                        st.info(f"**{agent['role']}**\n\n{agent['action']}")
+                
+                with col2:
+                    # Show attack timeline
+                    st.subheader("📈 Attack Timeline")
+                    self.show_attack_timeline(attack_type)
+            
+            # Show performance comparison in separate expander
+            with st.expander("Agent Performance Analysis", expanded=True):
+                st.subheader("🔄 Agent Performance Comparison")
+                self.show_agent_performance_comparison(attack_type)
+            
+            # Add attack description
+            with st.expander("Attack Description", expanded=True):
+                self.show_attack_description(attack_type)
         
-        with col1:
-            st.subheader("Attack Metrics")
-            
-            # Show attack-specific metrics
-            metrics = self.get_attack_metrics(attack_type)
-            
-            st.metric("Detection Time", metrics["detection_time"])
-            st.metric("Mitigation Success", metrics["mitigation_success"])
-            st.metric("False Positive Rate", metrics["false_positive_rate"])
-            st.metric("Agent Response Time", metrics["response_time"])
-            
-            # Show involved agents
-            st.subheader("Responding Agents")
-            for agent in metrics["responding_agents"]:
-                st.info(f"🤖 {agent['role']}: {agent['action']}")
-        
-        with col2:
-            # Show attack timeline
-            st.subheader("Attack Timeline")
-            self.show_attack_timeline(attack_type)
-            
-            # Show performance comparison
-            st.subheader("Agent Performance Comparison")
-            self.show_agent_performance_comparison(attack_type)
+        except Exception as e:
+            st.error(f"Error displaying attack analysis: {str(e)}")
+            st.error("Stack trace:", stack_info=True)
     
     def get_attack_metrics(self, attack_type):
         """Get metrics for specific attack type"""
@@ -662,6 +679,122 @@ class SecurityDashboard:
         )
         
         st.plotly_chart(fig, use_container_width=True)
+    
+    def show_attack_description(self, attack_type):
+        """Show detailed description of the attack type"""
+        descriptions = {
+            "DDoS Attack": {
+                "description": """
+                **Distributed Denial of Service (DDoS) Attack**
+                
+                A coordinated attempt to overwhelm system resources by flooding them with traffic from multiple sources.
+                
+                **Characteristics:**
+                - High volume of incoming traffic
+                - Multiple source IPs
+                - Network congestion
+                - Service disruption
+                
+                **Agent Response Strategy:**
+                1. Traffic pattern analysis
+                2. Rate limiting
+                3. Resource scaling
+                4. IP filtering
+                """
+            },
+            "Brute Force Login": {
+                "description": """
+                **Brute Force Login Attack**
+                
+                Repeated login attempts using different credentials to gain unauthorized access.
+                
+                **Characteristics:**
+                - Multiple failed login attempts
+                - Rapid succession of requests
+                - Pattern of credential testing
+                
+                **Agent Response Strategy:**
+                1. Account lockout
+                2. CAPTCHA implementation
+                3. IP blocking
+                4. Alert escalation
+                """
+            },
+            "Resource Exhaustion": {
+                "description": """
+                **Resource Exhaustion Attack**
+                
+                Targeted consumption of system resources to degrade service quality.
+                
+                **Characteristics:**
+                - High CPU/Memory usage
+                - Slow system response
+                - Resource starvation
+                
+                **Agent Response Strategy:**
+                1. Resource limiting
+                2. Load balancing
+                3. Service isolation
+                4. Auto-scaling
+                """
+            },
+            "Data Exfiltration": {
+                "description": """
+                **Data Exfiltration Attack**
+                
+                Unauthorized data transfer attempting to steal sensitive information.
+                
+                **Characteristics:**
+                - Unusual data transfer patterns
+                - Suspicious network connections
+                - Abnormal access patterns
+                
+                **Agent Response Strategy:**
+                1. Traffic monitoring
+                2. Connection termination
+                3. Data encryption
+                4. Access restriction
+                """
+            },
+            "SQL Injection": {
+                "description": """
+                **SQL Injection Attack**
+                
+                Malicious SQL queries attempting to manipulate or access database data.
+                
+                **Characteristics:**
+                - Malformed SQL queries
+                - Input validation bypass attempts
+                - Unauthorized data access
+                
+                **Agent Response Strategy:**
+                1. Query sanitization
+                2. WAF rules update
+                3. Session termination
+                4. Database monitoring
+                """
+            },
+            "Zero-Day Exploit": {
+                "description": """
+                **Zero-Day Exploit Attack**
+                
+                Previously unknown vulnerability exploitation attempt.
+                
+                **Characteristics:**
+                - Unknown attack patterns
+                - Novel exploitation methods
+                - Signature evasion
+                
+                **Agent Response Strategy:**
+                1. Behavior analysis
+                2. System isolation
+                3. Emergency protocols
+                4. Rapid patch deployment
+                """
+            }
+        }
+        
+        st.markdown(descriptions[attack_type]["description"])
     
     def show_documentation(self):
         """Display dashboard documentation"""

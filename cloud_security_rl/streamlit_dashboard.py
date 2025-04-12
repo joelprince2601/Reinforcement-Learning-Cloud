@@ -8,6 +8,7 @@ import time
 from datetime import datetime, timedelta
 import numpy as np
 from .agent_roles import AgentRole, AgentRoleManager
+import torch
 
 class SecurityDashboard:
     def __init__(self):
@@ -33,12 +34,13 @@ class SecurityDashboard:
         st.title("🛡️ Cloud Security RL Dashboard")
         
         # Create main tabs
-        tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
+        tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
             "📊 Dashboard",
             "🎯 Attack Analysis",
             "🌍 Global Threats",
             "🤖 ML Insights",
             "📋 Security & Compliance",
+            "🧠 ML Training",
             "📚 Documentation"
         ])
         
@@ -71,6 +73,9 @@ class SecurityDashboard:
             self.show_security_compliance()
             
         with tab6:
+            self.show_ml_training()
+            
+        with tab7:
             self.show_documentation()
     
     def setup_sidebar(self):
@@ -1335,6 +1340,127 @@ class SecurityDashboard:
                 with col2:
                     st.markdown(f"**Effort:** {rec['effort']}")
                 st.markdown(f"**Description:** {rec['description']}")
+
+    def show_ml_training(self):
+        """Display ML training interface and results"""
+        st.header("🧠 ML Model Training")
+        
+        # Training controls
+        st.subheader("Training Controls")
+        
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            epochs = st.number_input("Number of Epochs", min_value=1, max_value=200, value=50)
+            batch_size = st.number_input("Batch Size", min_value=8, max_value=128, value=32)
+        
+        with col2:
+            learning_rate = st.select_slider(
+                "Learning Rate",
+                options=[0.1, 0.01, 0.001, 0.0001],
+                value=0.001,
+                format_func=lambda x: f"{x:.4f}"
+            )
+            
+            device = "GPU" if torch.cuda.is_available() else "CPU"
+            st.info(f"Training Device: {device}")
+        
+        # Training button
+        if st.button("Start Training"):
+            try:
+                from .ml_model import SecurityMLTrainer
+                
+                with st.spinner("Training model..."):
+                    trainer = SecurityMLTrainer()
+                    trainer.train(num_epochs=epochs)
+                    st.success("Training completed successfully!")
+                
+                # Show training results
+                self.show_training_results(trainer.results_dir)
+            except Exception as e:
+                st.error(f"Error during training: {str(e)}")
+    
+    def show_training_results(self, results_dir):
+        """Display training results and metrics"""
+        st.subheader("📈 Training Results")
+        
+        # Get latest training run
+        runs = list(results_dir.glob("*"))
+        if not runs:
+            st.warning("No training results available")
+            return
+            
+        latest_run = max(runs, key=lambda x: x.stat().st_mtime)
+        
+        # Load training history
+        with open(latest_run / "training_history.json", "r") as f:
+            history = json.load(f)
+        
+        # Create metrics plot
+        fig = go.Figure()
+        
+        # Add training metrics
+        fig.add_trace(go.Scatter(
+            x=[m['epoch'] for m in history],
+            y=[m['train_loss'] for m in history],
+            mode='lines',
+            name='Training Loss',
+            line=dict(width=2, color='blue')
+        ))
+        
+        fig.add_trace(go.Scatter(
+            x=[m['epoch'] for m in history],
+            y=[m['val_loss'] for m in history],
+            mode='lines',
+            name='Validation Loss',
+            line=dict(width=2, color='red')
+        ))
+        
+        fig.update_layout(
+            title="Training Progress",
+            xaxis_title="Epoch",
+            yaxis_title="Loss",
+            height=400,
+            template="plotly_dark",
+            showlegend=True
+        )
+        
+        st.plotly_chart(fig, use_container_width=True)
+        
+        # Show accuracy metrics
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            st.metric(
+                "Final Training Accuracy",
+                f"{history[-1]['train_acc']:.2f}%",
+                f"{history[-1]['train_acc'] - history[0]['train_acc']:.2f}%"
+            )
+        
+        with col2:
+            st.metric(
+                "Final Validation Accuracy",
+                f"{history[-1]['val_acc']:.2f}%",
+                f"{history[-1]['val_acc'] - history[0]['val_acc']:.2f}%"
+            )
+        
+        # Model architecture
+        with st.expander("Model Architecture"):
+            st.code("""
+SecurityClassifier(
+    input_size=3,
+    hidden_size=128,
+    num_classes=3
+)
+Network:
+  - Linear(3, 128)
+  - ReLU()
+  - Dropout(0.3)
+  - Linear(128, 64)
+  - ReLU()
+  - Dropout(0.2)
+  - Linear(64, 3)
+            """)
 
 if __name__ == "__main__":
     dashboard = SecurityDashboard()

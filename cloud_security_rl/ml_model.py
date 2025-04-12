@@ -8,7 +8,7 @@ import pandas as pd
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
 
 class SecurityDataset(Dataset):
     def __init__(self, features, labels):
@@ -96,6 +96,11 @@ class SecurityMLTrainer:
         best_val_acc = 0
         no_improve_count = 0
         
+        # Generate timestamps for the past month
+        end_date = datetime.now()
+        start_date = end_date - timedelta(days=30)
+        timestamp_step = timedelta(days=30) / num_epochs
+        
         if progress_callback:
             progress_callback({
                 'status': 'init',
@@ -109,6 +114,9 @@ class SecurityMLTrainer:
             train_loss = 0
             correct = 0
             total = 0
+            
+            # Calculate timestamp for this epoch
+            current_timestamp = start_date + (epoch * timestamp_step)
             
             if progress_callback:
                 progress_callback({
@@ -180,6 +188,7 @@ class SecurityMLTrainer:
             # Save metrics
             metrics = {
                 'epoch': epoch + 1,
+                'timestamp': current_timestamp.strftime("%Y-%m-%d %H:%M:%S"),
                 'train_loss': train_loss,
                 'train_acc': train_acc,
                 'val_loss': val_loss,

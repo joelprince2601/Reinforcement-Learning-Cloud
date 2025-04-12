@@ -33,7 +33,14 @@ class SecurityDashboard:
         st.title("🛡️ Cloud Security RL Dashboard")
         
         # Create main tabs
-        tab1, tab2, tab3 = st.tabs(["📊 Dashboard", "🎯 Attack Analysis", "📚 Documentation"])
+        tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
+            "📊 Dashboard",
+            "🎯 Attack Analysis",
+            "🌍 Global Threats",
+            "🤖 ML Insights",
+            "📋 Security & Compliance",
+            "📚 Documentation"
+        ])
         
         with tab1:
             # Sidebar
@@ -55,6 +62,15 @@ class SecurityDashboard:
             self.show_attack_analysis()
             
         with tab3:
+            self.show_global_threats()
+            
+        with tab4:
+            self.show_ml_insights()
+            
+        with tab5:
+            self.show_security_compliance()
+            
+        with tab6:
             self.show_documentation()
     
     def setup_sidebar(self):
@@ -991,6 +1007,334 @@ class SecurityDashboard:
             - w_i = Agent weight
             - Score_i(a) = Action score from agent i
             """)
+
+    def show_global_threats(self):
+        """Display global threats dashboard"""
+        st.header("🌍 Global Threat Intelligence")
+        
+        # Show attack map
+        self.show_attack_map()
+        
+        # Show security score trend
+        self.show_security_score_trend()
+    
+    def show_attack_map(self):
+        """Display global attack origin map"""
+        st.subheader("🌍 Global Attack Origins")
+        
+        # Sample attack origin data
+        attack_data = {
+            "lat": [40.7128, 51.5074, 35.6762, -33.8688, 39.9042],
+            "lon": [-74.0060, -0.1278, 139.6503, 151.2093, 116.4074],
+            "intensity": [100, 80, 60, 40, 90],
+            "location": ["New York", "London", "Tokyo", "Sydney", "Beijing"],
+            "attack_type": ["DDoS", "Brute Force", "SQL Injection", "Data Exfiltration", "Zero-Day"]
+        }
+        
+        fig = go.Figure()
+        
+        # Add attack points
+        fig.add_trace(go.Scattergeo(
+            lon=attack_data["lon"],
+            lat=attack_data["lat"],
+            text=[f"{loc}: {type}" for loc, type in zip(attack_data["location"], attack_data["attack_type"])],
+            mode="markers",
+            marker=dict(
+                size=[i/10 for i in attack_data["intensity"]],
+                color=attack_data["intensity"],
+                colorscale="Viridis",
+                showscale=True,
+                colorbar_title="Attack Intensity"
+            ),
+            hovertemplate="<b>%{text}</b><br>Intensity: %{marker.color}<extra></extra>"
+        ))
+        
+        fig.update_layout(
+            title="Real-time Attack Origins",
+            geo=dict(
+                showland=True,
+                showcountries=True,
+                showocean=True,
+                countrywidth=0.5,
+                landcolor="rgb(243, 243, 243)",
+                oceancolor="rgb(204, 229, 255)",
+                projection_type="equirectangular"
+            ),
+            height=400,
+            template="plotly_dark"
+        )
+        
+        st.plotly_chart(fig, use_container_width=True)
+    
+    def show_security_score_trend(self):
+        """Display security score trends"""
+        st.subheader("🎯 Security Score Trend")
+        
+        # Generate sample data
+        dates = pd.date_range(start="2024-01-01", end="2024-01-20", freq="D")
+        scores = np.random.normal(85, 5, size=len(dates))
+        scores = np.clip(scores, 0, 100)
+        
+        fig = go.Figure()
+        fig.add_trace(go.Scatter(
+            x=dates,
+            y=scores,
+            mode='lines+markers',
+            name='Security Score',
+            line=dict(width=2),
+            hovertemplate='Date: %{x}<br>Score: %{y:.1f}<extra></extra>'
+        ))
+        
+        # Add threshold lines
+        fig.add_hline(y=90, line_dash="dash", line_color="green", annotation_text="Excellent")
+        fig.add_hline(y=70, line_dash="dash", line_color="red", annotation_text="Warning")
+        
+        fig.update_layout(
+            title="Security Score Over Time",
+            xaxis_title="Date",
+            yaxis_title="Security Score",
+            template="plotly_dark",
+            height=400
+        )
+        
+        st.plotly_chart(fig, use_container_width=True)
+
+    def show_ml_insights(self):
+        """Display ML model performance metrics and insights"""
+        st.header("🤖 Machine Learning Performance")
+        
+        # Create two columns for metrics
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            self.show_ml_metrics()
+        
+        with col2:
+            self.show_confusion_matrix()
+            
+        # Show model performance over time
+        self.show_model_performance_trend()
+    
+    def show_ml_metrics(self):
+        """Display key ML performance metrics"""
+        st.subheader("📊 Model Metrics")
+        
+        metrics = {
+            "Accuracy": 0.95,
+            "Precision": 0.92,
+            "Recall": 0.94,
+            "F1 Score": 0.93
+        }
+        
+        for metric, value in metrics.items():
+            st.metric(
+                label=metric,
+                value=f"{value:.2%}",
+                delta=f"+{(value - 0.9):.2%}" if value > 0.9 else f"{(value - 0.9):.2%}"
+            )
+    
+    def show_confusion_matrix(self):
+        """Display confusion matrix heatmap"""
+        st.subheader("🎯 Confusion Matrix")
+        
+        # Sample confusion matrix data
+        confusion_data = np.array([
+            [120, 5, 2],
+            [4, 95, 3],
+            [1, 2, 85]
+        ])
+        
+        labels = ["Normal", "Suspicious", "Attack"]
+        
+        fig = go.Figure(data=go.Heatmap(
+            z=confusion_data,
+            x=labels,
+            y=labels,
+            hoverongaps=False,
+            colorscale="Viridis",
+            text=confusion_data,
+            texttemplate="%{text}",
+            textfont={"size": 16},
+        ))
+        
+        fig.update_layout(
+            title="Prediction Results",
+            xaxis_title="Predicted",
+            yaxis_title="Actual",
+            height=400,
+            template="plotly_dark"
+        )
+        
+        st.plotly_chart(fig, use_container_width=True)
+    
+    def show_model_performance_trend(self):
+        """Display model performance trends over time"""
+        st.subheader("📈 Performance Trends")
+        
+        # Generate sample data
+        dates = pd.date_range(start="2024-01-01", end="2024-01-20", freq="D")
+        metrics = {
+            "Accuracy": np.clip(np.random.normal(0.95, 0.02, size=len(dates)), 0, 1),
+            "Precision": np.clip(np.random.normal(0.92, 0.02, size=len(dates)), 0, 1),
+            "Recall": np.clip(np.random.normal(0.94, 0.02, size=len(dates)), 0, 1)
+        }
+        
+        fig = go.Figure()
+        
+        for metric, values in metrics.items():
+            fig.add_trace(go.Scatter(
+                x=dates,
+                y=values,
+                mode='lines+markers',
+                name=metric,
+                hovertemplate=f"{metric}: %{y:.2%}<br>Date: %{x}<extra></extra>"
+            ))
+        
+        fig.update_layout(
+            title="Model Performance Over Time",
+            xaxis_title="Date",
+            yaxis_title="Score",
+            yaxis_tickformat=".1%",
+            height=400,
+            template="plotly_dark",
+            legend=dict(
+                yanchor="top",
+                y=0.99,
+                xanchor="left",
+                x=0.01
+            )
+        )
+        
+        st.plotly_chart(fig, use_container_width=True)
+
+    def show_security_compliance(self):
+        """Display security compliance status and recommendations"""
+        st.header("📋 Security & Compliance Overview")
+        
+        # Show compliance score
+        self.show_compliance_score()
+        
+        # Show compliance checks
+        self.show_compliance_checks()
+        
+        # Show recommendations
+        self.show_recommendations()
+    
+    def show_compliance_score(self):
+        """Display overall compliance score and status"""
+        st.subheader("🎯 Compliance Score")
+        
+        score = 85  # Sample score
+        
+        # Create three columns
+        col1, col2, col3 = st.columns([2, 1, 1])
+        
+        with col1:
+            fig = go.Figure(go.Indicator(
+                mode="gauge+number",
+                value=score,
+                domain={'x': [0, 1], 'y': [0, 1]},
+                gauge={
+                    'axis': {'range': [0, 100]},
+                    'bar': {'color': "darkblue"},
+                    'steps': [
+                        {'range': [0, 60], 'color': "red"},
+                        {'range': [60, 80], 'color': "yellow"},
+                        {'range': [80, 100], 'color': "green"}
+                    ],
+                    'threshold': {
+                        'line': {'color': "white", 'width': 4},
+                        'thickness': 0.75,
+                        'value': 90
+                    }
+                }
+            ))
+            
+            fig.update_layout(height=250)
+            st.plotly_chart(fig, use_container_width=True)
+        
+        with col2:
+            st.metric(
+                "Change",
+                "+5%",
+                "+2%",
+                help="Score change from last month"
+            )
+        
+        with col3:
+            status = "Good" if score >= 80 else "Warning" if score >= 60 else "Critical"
+            color = "green" if status == "Good" else "orange" if status == "Warning" else "red"
+            st.markdown(f"**Status:**")
+            st.markdown(f"<h3 style='color: {color};'>{status}</h3>", unsafe_allow_html=True)
+    
+    def show_compliance_checks(self):
+        """Display compliance checks status"""
+        st.subheader("✅ Compliance Checks")
+        
+        checks = {
+            "IAM Security": {
+                "MFA Enabled": True,
+                "Password Policy": True,
+                "Access Review": True,
+                "Role-based Access": False
+            },
+            "Network Security": {
+                "VPC Configuration": True,
+                "Security Groups": True,
+                "Network ACLs": True,
+                "Flow Logs": False
+            },
+            "Data Protection": {
+                "Encryption at Rest": True,
+                "Encryption in Transit": True,
+                "Backup Policy": False,
+                "Data Classification": True
+            }
+        }
+        
+        for category, items in checks.items():
+            with st.expander(f"{category} ({sum(items.values())}/{len(items)} Compliant)"):
+                for check, status in items.items():
+                    icon = "✅" if status else "❌"
+                    color = "green" if status else "red"
+                    st.markdown(f"<span style='color: {color};'>{icon} {check}</span>", unsafe_allow_html=True)
+    
+    def show_recommendations(self):
+        """Display security recommendations"""
+        st.subheader("💡 Recommendations")
+        
+        recommendations = [
+            {
+                "priority": "High",
+                "title": "Enable MFA for all IAM users",
+                "impact": "Critical",
+                "effort": "Low",
+                "description": "Multi-factor authentication significantly improves account security."
+            },
+            {
+                "priority": "Medium",
+                "title": "Review unused IAM roles",
+                "impact": "Moderate",
+                "effort": "Medium",
+                "description": "Remove or update unused IAM roles to reduce security risks."
+            },
+            {
+                "priority": "Low",
+                "title": "Update security group rules",
+                "impact": "Low",
+                "effort": "High",
+                "description": "Optimize security group rules for better network security."
+            }
+        ]
+        
+        for rec in recommendations:
+            with st.expander(f"[{rec['priority']}] {rec['title']}"):
+                col1, col2 = st.columns(2)
+                with col1:
+                    st.markdown(f"**Impact:** {rec['impact']}")
+                with col2:
+                    st.markdown(f"**Effort:** {rec['effort']}")
+                st.markdown(f"**Description:** {rec['description']}")
 
 if __name__ == "__main__":
     dashboard = SecurityDashboard()

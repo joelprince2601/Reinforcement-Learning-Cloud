@@ -100,7 +100,6 @@ class SecurityMLTrainer:
             progress_callback({
                 'status': 'init',
                 'message': f'Initialized model on {self.device}',
-                'total_epochs': num_epochs,
                 'current_epoch': 0
             })
         
@@ -204,7 +203,8 @@ class SecurityMLTrainer:
                 if progress_callback:
                     progress_callback({
                         'status': 'early_stop',
-                        'message': 'Early stopping: No improvement for 5 epochs'
+                        'message': 'Early stopping: No improvement for 5 epochs',
+                        'best_val_acc': best_val_acc
                     })
                 break
         

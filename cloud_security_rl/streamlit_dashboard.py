@@ -1518,9 +1518,12 @@ class SecurityDashboard:
         # Create metrics plot
         fig = go.Figure()
         
+        # Convert timestamps to datetime objects
+        timestamps = [datetime.strptime(m['timestamp'], "%Y-%m-%d %H:%M:%S") for m in history]
+        
         # Add training metrics
         fig.add_trace(go.Scatter(
-            x=[m['epoch'] for m in history],
+            x=timestamps,
             y=[m['train_loss'] for m in history],
             mode='lines',
             name='Training Loss',
@@ -1528,7 +1531,7 @@ class SecurityDashboard:
         ))
         
         fig.add_trace(go.Scatter(
-            x=[m['epoch'] for m in history],
+            x=timestamps,
             y=[m['val_loss'] for m in history],
             mode='lines',
             name='Validation Loss',
@@ -1536,15 +1539,61 @@ class SecurityDashboard:
         ))
         
         fig.update_layout(
-            title="Training Progress",
-            xaxis_title="Epoch",
+            title="Training Progress Over Time",
+            xaxis_title="Date",
             yaxis_title="Loss",
             height=400,
             template="plotly_dark",
-            showlegend=True
+            showlegend=True,
+            xaxis=dict(
+                tickformat="%Y-%m-%d\n%H:%M",
+                tickangle=45,
+                tickmode='auto',
+                nticks=10
+            )
         )
         
         st.plotly_chart(fig, use_container_width=True)
+        
+        # Create accuracy plot
+        fig_acc = go.Figure()
+        
+        fig_acc.add_trace(go.Scatter(
+            x=timestamps,
+            y=[m['train_acc'] for m in history],
+            mode='lines',
+            name='Training Accuracy',
+            line=dict(width=2, color='green')
+        ))
+        
+        fig_acc.add_trace(go.Scatter(
+            x=timestamps,
+            y=[m['val_acc'] for m in history],
+            mode='lines',
+            name='Validation Accuracy',
+            line=dict(width=2, color='orange')
+        ))
+        
+        fig_acc.update_layout(
+            title="Model Accuracy Over Time",
+            xaxis_title="Date",
+            yaxis_title="Accuracy (%)",
+            height=400,
+            template="plotly_dark",
+            showlegend=True,
+            xaxis=dict(
+                tickformat="%Y-%m-%d\n%H:%M",
+                tickangle=45,
+                tickmode='auto',
+                nticks=10
+            ),
+            yaxis=dict(
+                tickformat=".1f",
+                range=[0, 100]
+            )
+        )
+        
+        st.plotly_chart(fig_acc, use_container_width=True)
         
         # Show accuracy metrics
         col1, col2 = st.columns(2)

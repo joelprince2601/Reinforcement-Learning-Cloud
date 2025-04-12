@@ -83,8 +83,8 @@ class SecurityMLTrainer:
         
         return X_train.shape[1]  # Return input size
     
-    def train(self, num_epochs=50):
-        """Train the model"""
+    def train(self, num_epochs=50, progress_callback=None):
+        """Train the model with live progress updates"""
         input_size = self.prepare_data(next(self.results_dir.parent.glob("results/*/*.csv")))
         
         # Initialize model
@@ -93,13 +93,33 @@ class SecurityMLTrainer:
         optimizer = optim.Adam(self.model.parameters(), lr=0.001)
         
         # Training loop
+        best_val_acc = 0
+        no_improve_count = 0
+        
+        if progress_callback:
+            progress_callback({
+                'status': 'init',
+                'message': f'Initialized model on {self.device}',
+                'total_epochs': num_epochs,
+                'current_epoch': 0
+            })
+        
         for epoch in range(num_epochs):
+            # Training phase
             self.model.train()
             train_loss = 0
             correct = 0
             total = 0
             
-            for features, labels in self.train_loader:
+            if progress_callback:
+                progress_callback({
+                    'status': 'epoch_start',
+                    'message': f'Starting epoch {epoch + 1}/{num_epochs}',
+                    'current_epoch': epoch + 1
+                })
+            
+            # Training batches
+            for batch_idx, (features, labels) in enumerate(self.train_loader):
                 features, labels = features.to(self.device), labels.to(self.device)
                 
                 optimizer.zero_grad()
@@ -112,12 +132,27 @@ class SecurityMLTrainer:
                 _, predicted = outputs.max(1)
                 total += labels.size(0)
                 correct += predicted.eq(labels).sum().item()
+                
+                # Batch progress
+                if progress_callback and batch_idx % 5 == 0:
+                    progress_callback({
+                        'status': 'batch_progress',
+                        'message': f'Batch {batch_idx + 1}/{len(self.train_loader)}',
+                        'batch_loss': loss.item(),
+                        'batch_acc': 100. * predicted.eq(labels).sum().item() / labels.size(0)
+                    })
             
-            # Validation
+            # Validation phase
             self.model.eval()
             val_loss = 0
             val_correct = 0
             val_total = 0
+            
+            if progress_callback:
+                progress_callback({
+                    'status': 'validation_start',
+                    'message': 'Starting validation'
+                })
             
             with torch.no_grad():
                 for features, labels in self.test_loader:
@@ -130,18 +165,56 @@ class SecurityMLTrainer:
                     val_total += labels.size(0)
                     val_correct += predicted.eq(labels).sum().item()
             
+            # Calculate epoch metrics
+            train_loss = train_loss / len(self.train_loader)
+            train_acc = 100. * correct / total
+            val_loss = val_loss / len(self.test_loader)
+            val_acc = 100. * val_correct / val_total
+            
+            # Early stopping check
+            if val_acc > best_val_acc:
+                best_val_acc = val_acc
+                no_improve_count = 0
+            else:
+                no_improve_count += 1
+            
             # Save metrics
             metrics = {
                 'epoch': epoch + 1,
-                'train_loss': train_loss / len(self.train_loader),
-                'train_acc': 100. * correct / total,
-                'val_loss': val_loss / len(self.test_loader),
-                'val_acc': 100. * val_correct / val_total
+                'train_loss': train_loss,
+                'train_acc': train_acc,
+                'val_loss': val_loss,
+                'val_acc': val_acc
             }
             self.training_history.append(metrics)
             
+            if progress_callback:
+                progress_callback({
+                    'status': 'epoch_end',
+                    'message': f'Epoch {epoch + 1} completed',
+                    'metrics': metrics,
+                    'best_val_acc': best_val_acc
+                })
+            
             # Save model and metrics
             self.save_training_results()
+            
+            # Early stopping
+            if no_improve_count >= 5:
+                if progress_callback:
+                    progress_callback({
+                        'status': 'early_stop',
+                        'message': 'Early stopping: No improvement for 5 epochs'
+                    })
+                break
+        
+        if progress_callback:
+            progress_callback({
+                'status': 'complete',
+                'message': 'Training completed',
+                'final_metrics': self.training_history[-1],
+                'best_val_acc': best_val_acc
+            })
     
     def predict(self, features):
         """Make predictions using the trained model"""

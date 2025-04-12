@@ -1208,33 +1208,35 @@ class SecurityDashboard:
         st.plotly_chart(fig, use_container_width=True)
     
     def show_model_performance_trend(self):
-        """Display model performance trends over the last 24 hours"""
-        st.subheader("📈 Performance Trends (24-Hour)")
+        """Display model performance trends over the last week"""
+        st.subheader("📈 Performance Trends (Last 7 Days)")
         
-        # Generate timestamps for the last 24 hours with 15-minute intervals
+        # Generate timestamps for the last week with hourly intervals
         end_time = datetime.now()
-        start_time = end_time - timedelta(days=1)
-        timestamps = pd.date_range(start=start_time, end=end_time, freq='15T')
+        start_time = end_time - timedelta(days=7)
+        timestamps = pd.date_range(start=start_time, end=end_time, freq='1H')
         
-        # Generate performance metrics with realistic training improvements
-        # Start with lower values and show gradual improvement
+        # Base performance values with small variations
         base_metrics = {
-            "Accuracy": (0.85, 0.95),  # (start, end) values
-            "Precision": (0.82, 0.92),
-            "Recall": (0.84, 0.94)
+            "Accuracy": (0.945, 0.002),    # (base_value, variation)
+            "Precision": (0.942, 0.002),
+            "Recall": (0.944, 0.002)
         }
         
         metrics_data = {}
-        for metric, (start_val, end_val) in base_metrics.items():
-            # Create sigmoid curve for smooth learning progress
-            x = np.linspace(-6, 6, len(timestamps))
-            sigmoid = 1 / (1 + np.exp(-x))
+        for metric, (base_val, variation) in base_metrics.items():
+            # Create small daily cyclic variations
+            hours = np.arange(len(timestamps))
+            daily_cycle = np.sin(2 * np.pi * hours / 24) * variation
             
-            # Scale sigmoid to desired range
-            values = start_val + (end_val - start_val) * sigmoid
+            # Add very slight upward trend (0.1% improvement over the week)
+            trend = np.linspace(0, 0.001, len(timestamps))
             
-            # Add small random variations
-            noise = np.random.normal(0, 0.005, len(timestamps))
+            # Combine base value, daily cycle, and trend
+            values = base_val + daily_cycle + trend
+            
+            # Add tiny random noise
+            noise = np.random.normal(0, variation/4, len(timestamps))
             values = np.clip(values + noise, 0, 1)
             
             metrics_data[metric] = values
@@ -1255,7 +1257,7 @@ class SecurityDashboard:
                 mode='lines',
                 name=metric,
                 line=dict(width=2, color=colors[metric]),
-                hovertemplate=metric + ": %{y:.2%}<br>Time: %{x}<extra></extra>"
+                hovertemplate=metric + ": %{y:.3%}<br>Time: %{x}<extra></extra>"
             ))
         
         # Add annotations for key improvements
@@ -1265,12 +1267,12 @@ class SecurityDashboard:
         }
         
         annotation_text = "<br>".join([
-            f"{metric}: +{improvement:.1f}%" 
+            f"{metric}: +{improvement:.2f}%" 
             for metric, improvement in max_improvements.items()
         ])
         
         fig.add_annotation(
-            text=f"24h Improvements:<br>{annotation_text}",
+            text=f"7-Day Improvements:<br>{annotation_text}",
             xref="paper", yref="paper",
             x=0.02, y=0.98,
             showarrow=False,
@@ -1280,9 +1282,10 @@ class SecurityDashboard:
             font=dict(size=12)
         )
         
+        # Update y-axis range to focus on the 93.5-95.5% range
         fig.update_layout(
             title={
-                'text': "Model Training Progress (Last 24 Hours)",
+                'text': "Model Performance (Last 7 Days)",
                 'y':0.95,
                 'x':0.5,
                 'xanchor': 'center',
@@ -1291,7 +1294,8 @@ class SecurityDashboard:
             },
             xaxis_title="Time",
             yaxis_title="Performance Score",
-            yaxis_tickformat=".1%",
+            yaxis_tickformat=".3%",
+            yaxis=dict(range=[0.935, 0.955]),  # Focus on relevant range
             height=400,
             template="plotly_dark",
             legend=dict(

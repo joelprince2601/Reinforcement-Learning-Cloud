@@ -569,70 +569,24 @@ class SecurityDashboard:
     
     def show_attack_timeline(self, attack_type):
         """Show timeline visualization for attack detection and response"""
-        # Add replay controls
-        col1, col2, col3 = st.columns([1, 2, 1])
-        with col1:
-            start_replay = st.button("▶️ Start Replay")
-        with col2:
-            replay_speed = st.slider("Replay Speed", 0.5, 3.0, 1.0, 0.1)
-        with col3:
-            reset_replay = st.button("🔄 Reset")
-
-        # Create timeline data based on attack type
-        timeline_data = self.get_attack_timeline_data(attack_type)
+        # Create sample timeline data
+        timeline_data = {
+            "Time": [0, 1, 2, 3, 4, 5],
+            "Anomaly Score": [0.1, 0.3, 0.8, 0.9, 0.5, 0.2]
+        }
         
-        # Initialize or get session state for replay
-        if 'replay_index' not in st.session_state:
-            st.session_state.replay_index = 0
-        if 'is_replaying' not in st.session_state:
-            st.session_state.is_replaying = False
-            
-        # Handle replay controls
-        if start_replay:
-            st.session_state.is_replaying = True
-        if reset_replay:
-            st.session_state.replay_index = 0
-            st.session_state.is_replaying = False
-            
-        # Get current data slice based on replay state
-        current_index = st.session_state.replay_index
-        if st.session_state.is_replaying and current_index < len(timeline_data["Time"]):
-            current_index += 1
-            st.session_state.replay_index = current_index
-            time.sleep(0.5 / replay_speed)
-            st.experimental_rerun()
-            
         # Create timeline plot
         fig = go.Figure()
         
-        # Add anomaly score line up to current index
+        # Add anomaly score line
         fig.add_trace(go.Scatter(
-            x=timeline_data["Time"][:current_index],
-            y=timeline_data["Anomaly Score"][:current_index],
+            x=timeline_data["Time"],
+            y=timeline_data["Anomaly Score"],
             mode='lines+markers',
             name='Anomaly Score',
             line=dict(width=2, color='red'),
             hovertemplate='Time: %{x}s<br>Score: %{y:.2f}<extra></extra>'
         ))
-        
-        # Add events as markers
-        if "Events" in timeline_data:
-            events = timeline_data["Events"][:current_index]
-            event_times = timeline_data["Time"][:current_index]
-            event_scores = timeline_data["Anomaly Score"][:current_index]
-            
-            for i, event in enumerate(events):
-                if event:  # If there's an event at this time point
-                    fig.add_trace(go.Scatter(
-                        x=[event_times[i]],
-                        y=[event_scores[i]],
-                        mode='markers+text',
-                        name=event,
-                        text=[event],
-                        textposition="top center",
-                        marker=dict(size=12, symbol='star', color='yellow'),
-                        hovertemplate=f'{event}<br>Time: %{{x}}s<br>Score: %{{y:.2f}}<extra></extra>'
-                    ))
         
         # Add threshold line
         fig.add_hline(
@@ -668,126 +622,7 @@ class SecurityDashboard:
             margin=dict(l=60, r=30, t=50, b=50)
         )
         
-        # Fix axis ranges to prevent jumping
-        fig.update_xaxes(range=[0, max(timeline_data["Time"])])
-        fig.update_yaxes(range=[0, 1.2])
-        
         st.plotly_chart(fig, use_container_width=True)
-        
-        # Show current event description if available
-        if "Events" in timeline_data and current_index > 0 and timeline_data["Events"][current_index-1]:
-            st.info(f"🔔 Current Event: {timeline_data['Events'][current_index-1]}")
-
-    def get_attack_timeline_data(self, attack_type):
-        """Get timeline data specific to attack type"""
-        if attack_type == "DDoS Attack":
-            return {
-                "Time": list(range(11)),
-                "Anomaly Score": [0.1, 0.15, 0.3, 0.5, 0.75, 0.9, 0.85, 0.6, 0.4, 0.3, 0.2],
-                "Events": [
-                    "Traffic spike detected",
-                    None,
-                    "Multiple source IPs identified",
-                    None,
-                    "DDoS Attack confirmed",
-                    "Traffic filtering activated",
-                    "Resource scaling initiated",
-                    "Traffic normalizing",
-                    None,
-                    "System stabilized",
-                    "Monitoring state"
-                ]
-            }
-        elif attack_type == "Brute Force Login":
-            return {
-                "Time": list(range(11)),
-                "Anomaly Score": [0.1, 0.2, 0.4, 0.6, 0.8, 0.85, 0.7, 0.5, 0.3, 0.2, 0.1],
-                "Events": [
-                    "Failed login attempt",
-                    "Multiple failures detected",
-                    "Pattern identified",
-                    "CAPTCHA enabled",
-                    "IP blocking initiated",
-                    "Attack peak",
-                    "Additional IPs blocked",
-                    "Attack diminishing",
-                    None,
-                    "Normal activity resumed",
-                    "Enhanced monitoring"
-                ]
-            }
-        elif attack_type == "Resource Exhaustion":
-            return {
-                "Time": list(range(11)),
-                "Anomaly Score": [0.2, 0.3, 0.5, 0.7, 0.85, 0.95, 0.8, 0.6, 0.4, 0.3, 0.2],
-                "Events": [
-                    "Resource usage increase",
-                    "CPU spike detected",
-                    "Memory pressure",
-                    "Resource limits applied",
-                    "Attack pattern identified",
-                    "Auto-scaling triggered",
-                    "Resources stabilizing",
-                    "Load balancing active",
-                    "System recovering",
-                    None,
-                    "Normal operations"
-                ]
-            }
-        elif attack_type == "Data Exfiltration":
-            return {
-                "Time": list(range(11)),
-                "Anomaly Score": [0.1, 0.3, 0.5, 0.7, 0.9, 0.85, 0.6, 0.4, 0.3, 0.2, 0.1],
-                "Events": [
-                    "Unusual traffic pattern",
-                    "Large data transfer",
-                    "Pattern analysis",
-                    "Suspicious destination",
-                    "Attack confirmed",
-                    "Connection terminated",
-                    "Security rules updated",
-                    "System scan initiated",
-                    "No data loss confirmed",
-                    None,
-                    "Enhanced monitoring"
-                ]
-            }
-        elif attack_type == "SQL Injection":
-            return {
-                "Time": list(range(11)),
-                "Anomaly Score": [0.1, 0.4, 0.7, 0.9, 0.85, 0.6, 0.4, 0.3, 0.2, 0.1, 0.1],
-                "Events": [
-                    "Malformed query detected",
-                    "Pattern matching",
-                    "Attack signature identified",
-                    "Query blocked",
-                    "WAF rules updated",
-                    "Session terminated",
-                    "Database scan",
-                    "No compromise found",
-                    None,
-                    "Normal operations",
-                    "Continued monitoring"
-                ]
-            }
-        else:  # Zero-Day Exploit
-            return {
-                "Time": list(range(11)),
-                "Anomaly Score": [0.2, 0.4, 0.6, 0.8, 0.95, 0.9, 0.7, 0.5, 0.4, 0.3, 0.2],
-                "Events": [
-                    "Unknown pattern detected",
-                    "Behavior analysis",
-                    "Anomaly confirmed",
-                    "System isolation initiated",
-                    "Emergency protocol activated",
-                    "Patch development",
-                    "Patch deployment",
-                    "System verification",
-                    "Services restored",
-                    None,
-                    "Enhanced monitoring"
-                ]
-            }
     
     def show_agent_performance_comparison(self, attack_type):
         """Show performance comparison between agents for specific attack type"""

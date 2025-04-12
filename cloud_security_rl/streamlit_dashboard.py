@@ -818,361 +818,199 @@ class SecurityDashboard:
         st.markdown(descriptions[attack_type]["description"])
     
     def show_documentation(self):
-        """Display comprehensive dashboard documentation"""
-        st.header("📚 Documentation")
-        
+        """Display dashboard documentation"""
         # Create tabs for different documentation sections
-        doc_tab1, doc_tab2, doc_tab3, doc_tab4, doc_tab5 = st.tabs([
-            "Overview",
-            "Security Features",
-            "ML Components",
-            "API Reference",
-            "Troubleshooting"
-        ])
+        doc_tab1, doc_tab2, doc_tab3 = st.tabs(["Overview & Features", "Technical Details", "Algorithms & Formulas"])
         
         with doc_tab1:
             st.markdown("""
-            # Cloud Security RL Dashboard
-            
             ## Overview
             This dashboard provides real-time monitoring and visualization of a Reinforcement Learning-based cloud security system. 
-            The system uses multiple specialized agents to detect and respond to potential security threats in cloud environments.
-            
-            ## Key Features
-            
-            ### 1. Real-time Monitoring
-            - Live system metrics tracking
-            - Resource utilization monitoring
-            - Network traffic analysis
-            - User activity tracking
-            
-            ### 2. Security Analysis
-            - Attack detection and classification
-            - Threat severity assessment
-            - Response action tracking
-            - Security compliance monitoring
-            
-            ### 3. Machine Learning Integration
-            - Real-time anomaly detection
-            - Predictive threat analysis
-            - Automated response learning
-            - Performance optimization
-            
-            ### 4. Visualization
-            - Interactive dashboards
-            - Real-time metric plots
-            - Attack origin mapping
-            - Performance trending
+            The system uses multiple specialized agents to detect and respond to potential security threats.
             
             ## Dashboard Sections
             
-            1. **Main Dashboard**: Overview of system status and key metrics
-            2. **Attack Analysis**: Detailed analysis of detected attacks
-            3. **Global Threats**: Worldwide threat monitoring
-            4. **ML Insights**: Machine learning performance metrics
-            5. **Security & Compliance**: Compliance status and recommendations
-            6. **ML Training**: Model training and optimization interface
-            7. **Documentation**: System documentation and guides
+            ### 1. Agent Performance Metrics
+            - **Latency**: Shows the response time of each agent in milliseconds
+            - **Resource Usage**: Displays CPU and memory utilization
+            - **Actions**: Lists the actions taken by each agent and their success rates
+            
+            ### 2. System Status
+            - **System Health**: Overall system status indicator
+            - **Active Agents**: Number of operational agents
+            - **Alert Level**: Current security alert level
+            - **Active Threats**: Real-time display of detected security threats
+            
+            ### 3. Agent Roles
+            
+            #### Network Monitor
+            - Monitors network traffic patterns
+            - Detects unusual network activity
+            - Responds to potential DDoS attacks
+            
+            #### User Activity Monitor
+            - Tracks user login attempts
+            - Monitors session activities
+            - Identifies suspicious user behavior
+            
+            #### Resource Monitor
+            - Tracks CPU and memory usage
+            - Monitors system resources
+            - Detects resource exhaustion attacks
+            
+            #### Attack Detector
+            - Analyzes patterns for potential attacks
+            - Correlates security events
+            - Identifies attack signatures
+            
+            #### Response Coordinator
+            - Coordinates response actions
+            - Manages threat mitigation
+            - Orchestrates system-wide responses
             """)
             
         with doc_tab2:
             st.markdown("""
-            # Security Features
+            ## Technical Architecture
             
-            ## Agent Roles
+            ### Reinforcement Learning Framework
+            The system implements a **Multi-Agent Deep Q-Network (MADQN)** architecture with the following components:
             
-            ### 1. Network Monitor
-            - **Purpose**: Monitor network traffic patterns
-            - **Capabilities**:
-                - Traffic pattern analysis
-                - DDoS detection
-                - Anomaly identification
-                - Port scanning detection
+            1. **State Space**
+               - Network traffic features (packets/sec, bytes/sec)
+               - System metrics (CPU, memory, disk I/O)
+               - User activity patterns
+               - Historical attack patterns
             
-            ### 2. User Activity Monitor
-            - **Purpose**: Track user behavior and access patterns
-            - **Capabilities**:
-                - Login attempt monitoring
-                - Access pattern analysis
-                - Privilege escalation detection
-                - Session tracking
+            2. **Action Space**
+               - Block IP addresses
+               - Scale resources
+               - Enable CAPTCHA
+               - Reset connections
+               - Update security rules
             
-            ### 3. Resource Monitor
-            - **Purpose**: Track system resource utilization
-            - **Capabilities**:
-                - CPU usage monitoring
-                - Memory utilization tracking
-                - Disk I/O analysis
-                - Resource exhaustion detection
+            3. **Reward Function**
+               ```
+               R = w₁ * S + w₂ * (1-L) + w₃ * (1-F) - w₄ * C
+               ```
+               where:
+               - S = Success rate of threat mitigation
+               - L = Normalized latency impact
+               - F = False positive rate
+               - C = Resource cost
+               - w₁, w₂, w₃, w₄ = Importance weights
             
-            ## Security Measures
+            ### Key Technical Terms
             
-            ### 1. Attack Detection
-            - Real-time threat detection
-            - Pattern-based analysis
-            - Anomaly detection
-            - Behavioral analysis
+            1. **Inference Latency**
+               - Time taken for an agent to process inputs and decide actions
+               - Measured in milliseconds
+               - Critical for real-time response
             
-            ### 2. Response Actions
-            - Automated threat mitigation
-            - Resource scaling
-            - Traffic filtering
-            - Access control adjustment
+            2. **Anomaly Score**
+               ```
+               A = |x - μ| / σ
+               ```
+               - x = Current metric value
+               - μ = Historical mean
+               - σ = Standard deviation
             
-            ### 3. Compliance Monitoring
-            - Security standards compliance
-            - Best practices enforcement
-            - Regular auditing
-            - Policy enforcement
+            3. **Threat Detection Confidence**
+               ```
+               C = (TP/(TP + FP)) * (TN/(TN + FN))
+               ```
+               - TP = True Positives
+               - FP = False Positives
+               - TN = True Negatives
+               - FN = False Negatives
             
-            ## Alert System
-            
-            ### Severity Levels
-            1. **Critical**: Immediate action required
-            2. **High**: Urgent attention needed
-            3. **Medium**: Monitor closely
-            4. **Low**: Regular monitoring
-            
-            ### Response Protocol
-            1. Threat Detection
-            2. Risk Assessment
-            3. Action Selection
-            4. Response Implementation
-            5. Result Monitoring
+            4. **Resource Utilization Index**
+               ```
+               RUI = α*CPU + β*Memory + γ*Network
+               ```
+               - α, β, γ = Resource weight coefficients
+               - Values normalized to [0,1]
             """)
             
         with doc_tab3:
             st.markdown("""
-            # Machine Learning Components
+            ## Algorithms & Formulas
             
-            ## Model Architecture
+            ### 1. Deep Q-Network (DQN)
+            Each agent uses a DQN with the following architecture:
+            - Input Layer: State dimension (varies by agent role)
+            - Hidden Layers: 3 fully connected layers (256, 128, 64 neurons)
+            - Output Layer: Action space dimension
             
-            ### Security Classifier
-            ```python
-            SecurityClassifier(
-                input_size=3,
-                hidden_size=128,
-                num_classes=3
-            )
+            #### Q-Learning Update
+            ```
+            Q(s,a) ← Q(s,a) + α[r + γ*max_a'Q(s',a') - Q(s,a)]
+            ```
+            - α = Learning rate
+            - γ = Discount factor
+            - r = Immediate reward
+            - s' = Next state
+            
+            ### 2. Threat Detection
+            
+            #### Network Anomaly Score
+            ```
+            NA = Σ(w_i * |x_i - μ_i| / σ_i)
+            ```
+            - x_i = Current metric value
+            - μ_i = Historical mean
+            - σ_i = Standard deviation
+            - w_i = Feature weight
+            
+            #### Attack Probability
+            ```
+            P(attack) = 1 / (1 + e^(-z))
+            where z = Σ(β_j * NA_j)
             ```
             
-            ### Network Architecture
-            - Input Layer (3 features)
-            - Hidden Layer 1 (128 neurons)
-            - ReLU Activation
-            - Dropout (0.3)
-            - Hidden Layer 2 (64 neurons)
-            - ReLU Activation
-            - Dropout (0.2)
-            - Output Layer (3 classes)
+            ### 3. Resource Management
             
-            ## Training Process
+            #### Auto-scaling Threshold
+            ```
+            ST = μ_cpu + k * σ_cpu
+            ```
+            - μ_cpu = Mean CPU utilization
+            - σ_cpu = CPU utilization standard deviation
+            - k = Sensitivity parameter
             
-            ### Data Preparation
-            1. Feature extraction
-            2. Data normalization
-            3. Train/test split
-            4. Batch processing
+            #### Response Time Prediction
+            ```
+            RT = S / (C - λ)
+            ```
+            - S = Service time
+            - C = System capacity
+            - λ = Arrival rate
             
-            ### Training Parameters
-            - Batch Size: 32
-            - Learning Rate: 0.001
-            - Optimizer: Adam
-            - Loss Function: CrossEntropyLoss
+            ### 4. Performance Metrics
             
-            ### Early Stopping
-            - Monitors validation accuracy
-            - Patience: 5 epochs
-            - Saves best model
-            
-            ## Model Performance
-            
-            ### Metrics Tracked
-            - Training Loss
-            - Validation Loss
-            - Training Accuracy
-            - Validation Accuracy
-            
-            ### Classification Categories
-            1. **Normal** (Class 0)
-                - Regular system behavior
-                - Standard traffic patterns
-            
-            2. **Suspicious** (Class 1)
-                - Unusual patterns
-                - Potential threats
-            
-            3. **Attack** (Class 2)
-                - Confirmed threats
-                - Active attacks
-            
-            ## Real-time Processing
-            
-            ### Feature Processing
-            - CPU Usage
-            - Memory Usage
-            - Inference Latency
-            
-            ### Inference Pipeline
-            1. Data collection
-            2. Feature normalization
-            3. Model inference
-            4. Threat classification
-            5. Response selection
-            """)
-            
-        with doc_tab4:
-            st.markdown("""
-            # API Reference
-            
-            ## Dashboard Class
-            
-            ### Main Methods
-            
-            ```python
-            class SecurityDashboard:
-                def run(self):
-                    """Main dashboard loop"""
-                
-                def setup_sidebar(self):
-                    """Setup sidebar controls"""
-                
-                def show_agent_metrics(self):
-                    """Display agent metrics and performance"""
-                
-                def show_ml_insights(self):
-                    """Display ML model performance metrics"""
-                
-                def show_security_compliance(self):
-                    """Display security compliance status"""
+            #### Agent Efficiency Score
+            ```
+            E = (Successful_Actions / Total_Actions) * (1 - Latency/Max_Latency)
             ```
             
-            ### ML Training Interface
-            
-            ```python
-            class SecurityMLTrainer:
-                def train(self, num_epochs=50):
-                    """Train the security model"""
-                
-                def predict(self, features):
-                    """Make predictions using trained model"""
-                
-                def save_training_results(self):
-                    """Save model and training history"""
+            #### System Health Index
+            ```
+            H = (1/n) * Σ(1 - Metric_i/Threshold_i)
             ```
             
-            ## Configuration
+            ### 5. Coordination Algorithm
             
-            ### Environment Variables
-            - `CUDA_VISIBLE_DEVICES`: GPU selection
-            - `LOG_LEVEL`: Logging detail level
-            - `DATA_DIR`: Data directory path
-            
-            ### File Structure
+            #### Action Priority Score
             ```
-            cloud_security_rl/
-            ├── streamlit_dashboard.py
-            ├── ml_model.py
-            ├── agent_roles.py
-            ├── results/
-            │   └── monitoring_data/
-            └── ml_results/
-                └── trained_models/
-            ```
-            """)
-            
-        with doc_tab5:
-            st.markdown("""
-            # Troubleshooting Guide
-            
-            ## Common Issues
-            
-            ### 1. Training Issues
-            
-            #### Model Not Training
-            - Check GPU availability
-            - Verify data loading
-            - Check memory usage
-            
-            **Solution**:
-            ```python
-            # Check GPU
-            import torch
-            print(torch.cuda.is_available())
-            
-            # Check memory
-            import psutil
-            print(psutil.virtual_memory())
+            P(a) = (Impact(a) * Urgency(a)) / Cost(a)
             ```
             
-            #### Poor Model Performance
-            - Check data quality
-            - Verify feature scaling
-            - Adjust hyperparameters
-            
-            **Solution**:
-            - Increase training epochs
-            - Adjust learning rate
-            - Modify model architecture
-            
-            ### 2. Dashboard Issues
-            
-            #### Data Not Updating
-            - Check data sources
-            - Verify refresh rate
-            - Check file permissions
-            
-            **Solution**:
-            - Manual refresh
-            - Restart dashboard
-            - Check data paths
-            
-            #### Visualization Errors
-            - Check data format
-            - Verify plot parameters
-            - Check browser compatibility
-            
-            ### 3. System Requirements
-            
-            #### Minimum Requirements
-            - Python 3.8+
-            - 8GB RAM
-            - 4 CPU cores
-            - 2GB GPU (optional)
-            
-            #### Recommended
-            - Python 3.10+
-            - 16GB RAM
-            - 8 CPU cores
-            - 4GB GPU
-            
-            ### 4. Error Messages
-            
-            #### Common Error Codes
-            - E001: Data loading error
-            - E002: Model training error
-            - E003: Prediction error
-            - E004: Visualization error
-            
-            #### Resolution Steps
-            1. Check error logs
-            2. Verify configurations
-            3. Restart services
-            4. Update dependencies
-            
-            ## Support
-            
-            ### Getting Help
-            - Check documentation
-            - Review error logs
-            - Contact support team
-            - Submit bug reports
-            
-            ### Updating System
-            1. Backup current data
-            2. Update dependencies
-            3. Pull latest code
-            4. Restart services
+            #### Consensus Decision
+            ```
+            D = argmax_a Σ(w_i * Score_i(a))
+            ```
+            - w_i = Agent weight
+            - Score_i(a) = Action score from agent i
             """)
 
     def show_global_threats(self):

@@ -1187,7 +1187,7 @@ class SecurityDashboard:
                 y=values,
                 mode='lines+markers',
                 name=metric,
-                hovertemplate=f"{metric}: %{y:.2%}<br>Date: %{x}<extra></extra>"
+                hovertemplate=metric + ": %{y:.2%}<br>Date: %{x}<extra></extra>"
             ))
         
         fig.update_layout(

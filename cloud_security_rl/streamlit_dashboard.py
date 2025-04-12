@@ -1387,7 +1387,7 @@ class SecurityDashboard:
                 st.session_state.current_metrics = None
                 st.session_state.training_progress = 0
             elif info['status'] == 'epoch_start':
-                st.session_state.training_progress = (info['current_epoch'] - 1) / info['total_epochs']
+                st.session_state.training_progress = info['current_epoch'] / epochs
             
             # Add log message
             timestamp = datetime.now().strftime("%H:%M:%S")
@@ -1401,6 +1401,10 @@ class SecurityDashboard:
                             f"Val Loss: {metrics['val_loss']:.4f}, "
                             f"Val Acc: {metrics['val_acc']:.2f}%")
                 st.session_state.current_metrics = metrics
+            elif info['status'] == 'early_stop':
+                log_entry += f"\nBest validation accuracy: {info.get('best_val_acc', 0):.2f}%"
+            elif info['status'] == 'complete':
+                log_entry += f"\nTraining completed with best validation accuracy: {info.get('best_val_acc', 0):.2f}%"
             
             st.session_state.training_logs.append(log_entry)
             
@@ -1428,11 +1432,11 @@ class SecurityDashboard:
                 history = self.get_training_history()
                 
                 if history:
-                    epochs = list(range(1, len(history) + 1))
+                    epochs_range = list(range(1, len(history) + 1))
                     
                     # Add accuracy traces
                     fig.add_trace(go.Scatter(
-                        x=epochs,
+                        x=epochs_range,
                         y=[m['train_acc'] for m in history],
                         mode='lines+markers',
                         name='Train Accuracy',
@@ -1440,7 +1444,7 @@ class SecurityDashboard:
                     ))
                     
                     fig.add_trace(go.Scatter(
-                        x=epochs,
+                        x=epochs_range,
                         y=[m['val_acc'] for m in history],
                         mode='lines+markers',
                         name='Validation Accuracy',
@@ -1476,6 +1480,7 @@ class SecurityDashboard:
                 
             except Exception as e:
                 st.error(f"Error during training: {str(e)}")
+                st.error("Stack trace:", stack_info=True)
     
     def get_training_history(self):
         """Get training history from the latest run"""

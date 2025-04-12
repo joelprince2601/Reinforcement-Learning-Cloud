@@ -33,7 +33,7 @@ class SecurityDashboard:
         st.title("🛡️ Cloud Security RL Dashboard")
         
         # Create main tabs
-        tab1, tab2 = st.tabs(["📊 Dashboard", "📚 Documentation"])
+        tab1, tab2, tab3 = st.tabs(["📊 Dashboard", "🎯 Attack Analysis", "📚 Documentation"])
         
         with tab1:
             # Sidebar
@@ -52,6 +52,9 @@ class SecurityDashboard:
             self.show_alerts_and_actions()
             
         with tab2:
+            self.show_attack_analysis()
+            
+        with tab3:
             self.show_documentation()
     
     def setup_sidebar(self):
@@ -426,6 +429,239 @@ class SecurityDashboard:
                 "result": "Success"
             }
         ]
+    
+    def show_attack_analysis(self):
+        """Display attack analysis and agent performance during attacks"""
+        st.header("🎯 Attack Analysis & Response Performance")
+        
+        # Attack type selector
+        attack_type = st.selectbox(
+            "Select Attack Type",
+            [
+                "DDoS Attack",
+                "Brute Force Login",
+                "Resource Exhaustion",
+                "Data Exfiltration",
+                "SQL Injection",
+                "Zero-Day Exploit"
+            ]
+        )
+        
+        # Create two columns for metrics and visualization
+        col1, col2 = st.columns([1, 2])
+        
+        with col1:
+            st.subheader("Attack Metrics")
+            
+            # Show attack-specific metrics
+            metrics = self.get_attack_metrics(attack_type)
+            
+            st.metric("Detection Time", metrics["detection_time"])
+            st.metric("Mitigation Success", metrics["mitigation_success"])
+            st.metric("False Positive Rate", metrics["false_positive_rate"])
+            st.metric("Agent Response Time", metrics["response_time"])
+            
+            # Show involved agents
+            st.subheader("Responding Agents")
+            for agent in metrics["responding_agents"]:
+                st.info(f"🤖 {agent['role']}: {agent['action']}")
+        
+        with col2:
+            # Show attack timeline
+            st.subheader("Attack Timeline")
+            self.show_attack_timeline(attack_type)
+            
+            # Show performance comparison
+            st.subheader("Agent Performance Comparison")
+            self.show_agent_performance_comparison(attack_type)
+    
+    def get_attack_metrics(self, attack_type):
+        """Get metrics for specific attack type"""
+        # This would come from your actual monitoring data
+        # For now, returning sample data
+        metrics = {
+            "DDoS Attack": {
+                "detection_time": "1.2s",
+                "mitigation_success": "98%",
+                "false_positive_rate": "0.5%",
+                "response_time": "850ms",
+                "responding_agents": [
+                    {"role": "Network Monitor", "action": "Traffic filtering activated"},
+                    {"role": "Resource Monitor", "action": "Scaled resources"},
+                    {"role": "Response Coordinator", "action": "Updated firewall rules"}
+                ]
+            },
+            "Brute Force Login": {
+                "detection_time": "2.5s",
+                "mitigation_success": "99%",
+                "false_positive_rate": "0.2%",
+                "response_time": "450ms",
+                "responding_agents": [
+                    {"role": "User Activity Monitor", "action": "IP blocking initiated"},
+                    {"role": "Attack Detector", "action": "CAPTCHA enabled"},
+                    {"role": "Response Coordinator", "action": "Alert escalated"}
+                ]
+            },
+            "Resource Exhaustion": {
+                "detection_time": "3.1s",
+                "mitigation_success": "95%",
+                "false_positive_rate": "1.0%",
+                "response_time": "1.2s",
+                "responding_agents": [
+                    {"role": "Resource Monitor", "action": "Resource limits applied"},
+                    {"role": "Network Monitor", "action": "Connection throttling"},
+                    {"role": "Response Coordinator", "action": "System scaled"}
+                ]
+            },
+            "Data Exfiltration": {
+                "detection_time": "4.2s",
+                "mitigation_success": "97%",
+                "false_positive_rate": "0.8%",
+                "response_time": "950ms",
+                "responding_agents": [
+                    {"role": "Network Monitor", "action": "Traffic pattern analysis"},
+                    {"role": "Attack Detector", "action": "Connection terminated"},
+                    {"role": "Response Coordinator", "action": "Security rules updated"}
+                ]
+            },
+            "SQL Injection": {
+                "detection_time": "0.8s",
+                "mitigation_success": "99.5%",
+                "false_positive_rate": "0.1%",
+                "response_time": "350ms",
+                "responding_agents": [
+                    {"role": "Attack Detector", "action": "Query blocked"},
+                    {"role": "User Activity Monitor", "action": "Session terminated"},
+                    {"role": "Response Coordinator", "action": "WAF rules updated"}
+                ]
+            },
+            "Zero-Day Exploit": {
+                "detection_time": "5.5s",
+                "mitigation_success": "92%",
+                "false_positive_rate": "2.0%",
+                "response_time": "1.5s",
+                "responding_agents": [
+                    {"role": "Attack Detector", "action": "Anomaly detected"},
+                    {"role": "Network Monitor", "action": "Traffic isolated"},
+                    {"role": "Response Coordinator", "action": "Emergency protocol activated"}
+                ]
+            }
+        }
+        
+        return metrics.get(attack_type, {})
+    
+    def show_attack_timeline(self, attack_type):
+        """Show timeline visualization for attack detection and response"""
+        # Create sample timeline data
+        timeline_data = {
+            "Time": [0, 1, 2, 3, 4, 5],
+            "Anomaly Score": [0.1, 0.3, 0.8, 0.9, 0.5, 0.2]
+        }
+        
+        # Create timeline plot
+        fig = go.Figure()
+        
+        # Add anomaly score line
+        fig.add_trace(go.Scatter(
+            x=timeline_data["Time"],
+            y=timeline_data["Anomaly Score"],
+            mode='lines+markers',
+            name='Anomaly Score',
+            line=dict(width=2, color='red'),
+            hovertemplate='Time: %{x}s<br>Score: %{y:.2f}<extra></extra>'
+        ))
+        
+        # Add threshold line
+        fig.add_hline(
+            y=0.7,
+            line_dash="dash",
+            line_color="yellow",
+            annotation_text="Detection Threshold",
+            annotation_position="bottom right"
+        )
+        
+        # Update layout
+        fig.update_layout(
+            title={
+                'text': f"Attack Detection Timeline - {attack_type}",
+                'y':0.95,
+                'x':0.5,
+                'xanchor': 'center',
+                'yanchor': 'top',
+                'font': dict(size=16)
+            },
+            xaxis_title="Time (seconds)",
+            yaxis_title="Anomaly Score",
+            height=300,
+            template="plotly_dark",
+            showlegend=True,
+            legend=dict(
+                yanchor="top",
+                y=0.99,
+                xanchor="left",
+                x=0.01,
+                bgcolor="rgba(255, 255, 255, 0.1)"
+            ),
+            margin=dict(l=60, r=30, t=50, b=50)
+        )
+        
+        st.plotly_chart(fig, use_container_width=True)
+    
+    def show_agent_performance_comparison(self, attack_type):
+        """Show performance comparison between agents for specific attack type"""
+        # Create sample performance data
+        performance_data = {
+            "Agent": ["Network Monitor", "User Activity", "Resource Monitor", "Attack Detector", "Response Coordinator"],
+            "Detection Rate": [0.95, 0.88, 0.92, 0.98, 0.85],
+            "Response Time": [0.8, 1.2, 0.9, 0.7, 1.1]
+        }
+        
+        # Create performance comparison plot
+        fig = go.Figure()
+        
+        # Add detection rate bars
+        fig.add_trace(go.Bar(
+            name='Detection Rate',
+            x=performance_data["Agent"],
+            y=performance_data["Detection Rate"],
+            marker_color='blue',
+            hovertemplate='Detection Rate: %{y:.2%}<extra></extra>'
+        ))
+        
+        # Add response time bars
+        fig.add_trace(go.Bar(
+            name='Response Time (s)',
+            x=performance_data["Agent"],
+            y=performance_data["Response Time"],
+            marker_color='orange',
+            hovertemplate='Response Time: %{y:.2f}s<extra></extra>'
+        ))
+        
+        # Update layout
+        fig.update_layout(
+            title={
+                'text': f"Agent Performance - {attack_type}",
+                'y':0.95,
+                'x':0.5,
+                'xanchor': 'center',
+                'yanchor': 'top',
+                'font': dict(size=16)
+            },
+            barmode='group',
+            height=300,
+            template="plotly_dark",
+            showlegend=True,
+            legend=dict(
+                yanchor="top",
+                y=0.99,
+                xanchor="left",
+                x=0.01,
+                bgcolor="rgba(255, 255, 255, 0.1)"
+            ),
+            margin=dict(l=60, r=30, t=50, b=50)
+        )
+        
+        st.plotly_chart(fig, use_container_width=True)
     
     def show_documentation(self):
         """Display dashboard documentation"""

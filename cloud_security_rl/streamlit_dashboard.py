@@ -1168,106 +1168,42 @@ class SecurityDashboard:
         st.plotly_chart(fig, use_container_width=True)
     
     def show_model_performance_trend(self):
-        """Display model performance trends over the last 24 hours"""
-        st.subheader("📈 Performance Trends (24-Hour)")
+        """Display model performance trends over time"""
+        st.subheader("📈 Performance Trends")
         
-        # Generate timestamps for the last 24 hours with 15-minute intervals
-        end_time = datetime.now()
-        start_time = end_time - timedelta(days=1)
-        timestamps = pd.date_range(start=start_time, end=end_time, freq='15T')
-        
-        # Generate performance metrics with realistic training improvements
-        # Start with lower values and show gradual improvement
-        base_metrics = {
-            "Accuracy": (0.85, 0.95),  # (start, end) values
-            "Precision": (0.82, 0.92),
-            "Recall": (0.84, 0.94)
+        # Generate sample data
+        dates = pd.date_range(start="2024-01-01", end="2024-01-20", freq="D")
+        metrics = {
+            "Accuracy": np.clip(np.random.normal(0.95, 0.02, size=len(dates)), 0, 1),
+            "Precision": np.clip(np.random.normal(0.92, 0.02, size=len(dates)), 0, 1),
+            "Recall": np.clip(np.random.normal(0.94, 0.02, size=len(dates)), 0, 1)
         }
         
-        metrics_data = {}
-        for metric, (start_val, end_val) in base_metrics.items():
-            # Create sigmoid curve for smooth learning progress
-            x = np.linspace(-6, 6, len(timestamps))
-            sigmoid = 1 / (1 + np.exp(-x))
-            
-            # Scale sigmoid to desired range
-            values = start_val + (end_val - start_val) * sigmoid
-            
-            # Add small random variations
-            noise = np.random.normal(0, 0.005, len(timestamps))
-            values = np.clip(values + noise, 0, 1)
-            
-            metrics_data[metric] = values
-        
-        # Create the plot
         fig = go.Figure()
         
-        colors = {
-            "Accuracy": "#00ff00",   # Green
-            "Precision": "#ff9900",  # Orange
-            "Recall": "#00ccff"      # Blue
-        }
-        
-        for metric, values in metrics_data.items():
+        for metric, values in metrics.items():
             fig.add_trace(go.Scatter(
-                x=timestamps,
+                x=dates,
                 y=values,
-                mode='lines',
+                mode='lines+markers',
                 name=metric,
-                line=dict(width=2, color=colors[metric]),
-                hovertemplate=metric + ": %{y:.2%}<br>Time: %{x}<extra></extra>"
+                hovertemplate=metric + ": %{y:.2%}<br>Date: %{x}<extra></extra>"
             ))
         
-        # Add annotations for key improvements
-        max_improvements = {
-            metric: (values[-1] - values[0]) * 100 
-            for metric, values in metrics_data.items()
-        }
-        
-        annotation_text = "<br>".join([
-            f"{metric}: +{improvement:.1f}%" 
-            for metric, improvement in max_improvements.items()
-        ])
-        
-        fig.add_annotation(
-            text=f"24h Improvements:<br>{annotation_text}",
-            xref="paper", yref="paper",
-            x=0.02, y=0.98,
-            showarrow=False,
-            bgcolor="rgba(255, 255, 255, 0.1)",
-            bordercolor="white",
-            borderwidth=1,
-            font=dict(size=12)
-        )
-        
         fig.update_layout(
-            title={
-                'text': "Model Training Progress (Last 24 Hours)",
-                'y':0.95,
-                'x':0.5,
-                'xanchor': 'center',
-                'yanchor': 'top',
-                'font': dict(size=16)
-            },
-            xaxis_title="Time",
-            yaxis_title="Performance Score",
+            title="Model Performance Over Time",
+            xaxis_title="Date",
+            yaxis_title="Score",
             yaxis_tickformat=".1%",
             height=400,
             template="plotly_dark",
             legend=dict(
                 yanchor="top",
                 y=0.99,
-                xanchor="right",
-                x=0.99,
-                bgcolor="rgba(255, 255, 255, 0.1)"
-            ),
-            margin=dict(l=60, r=30, t=50, b=50),
-            showlegend=True,
-            hovermode='x unified'
+                xanchor="left",
+                x=0.01
+            )
         )
-        
-        # Add a range slider
-        fig.update_xaxes(rangeslider_visible=True)
         
         st.plotly_chart(fig, use_container_width=True)
 

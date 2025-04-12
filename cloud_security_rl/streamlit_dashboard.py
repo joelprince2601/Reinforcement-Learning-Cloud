@@ -1365,21 +1365,135 @@ class SecurityDashboard:
             device = "GPU" if torch.cuda.is_available() else "CPU"
             st.info(f"Training Device: {device}")
         
+        # Initialize session state for training logs
+        if 'training_logs' not in st.session_state:
+            st.session_state.training_logs = []
+        if 'current_metrics' not in st.session_state:
+            st.session_state.current_metrics = None
+        if 'training_progress' not in st.session_state:
+            st.session_state.training_progress = 0
+        
+        # Create placeholder for live updates
+        log_placeholder = st.empty()
+        progress_bar = st.progress(0)
+        metrics_placeholder = st.empty()
+        plot_placeholder = st.empty()
+        
+        def update_training_progress(info):
+            """Callback function to update training progress"""
+            # Update progress bar
+            if info['status'] == 'init':
+                st.session_state.training_logs = []
+                st.session_state.current_metrics = None
+                st.session_state.training_progress = 0
+            elif info['status'] == 'epoch_start':
+                st.session_state.training_progress = (info['current_epoch'] - 1) / info['total_epochs']
+            
+            # Add log message
+            timestamp = datetime.now().strftime("%H:%M:%S")
+            log_entry = f"[{timestamp}] {info['message']}"
+            if info['status'] == 'batch_progress':
+                log_entry += f" - Loss: {info['batch_loss']:.4f}, Acc: {info['batch_acc']:.2f}%"
+            elif info['status'] == 'epoch_end':
+                metrics = info['metrics']
+                log_entry += (f"\nTrain Loss: {metrics['train_loss']:.4f}, "
+                            f"Train Acc: {metrics['train_acc']:.2f}%, "
+                            f"Val Loss: {metrics['val_loss']:.4f}, "
+                            f"Val Acc: {metrics['val_acc']:.2f}%")
+                st.session_state.current_metrics = metrics
+            
+            st.session_state.training_logs.append(log_entry)
+            
+            # Update display
+            progress_bar.progress(st.session_state.training_progress)
+            
+            # Show logs (keep last 10 entries)
+            log_placeholder.code('\n'.join(st.session_state.training_logs[-10:]))
+            
+            # Update metrics
+            if st.session_state.current_metrics:
+                col1, col2 = metrics_placeholder.columns(2)
+                with col1:
+                    st.metric("Training Accuracy", 
+                             f"{st.session_state.current_metrics['train_acc']:.2f}%",
+                             f"{st.session_state.current_metrics['train_loss']:.4f}")
+                with col2:
+                    st.metric("Validation Accuracy",
+                             f"{st.session_state.current_metrics['val_acc']:.2f}%",
+                             f"{st.session_state.current_metrics['val_loss']:.4f}")
+            
+            # Update plot if we have history
+            if info['status'] == 'epoch_end':
+                fig = go.Figure()
+                history = self.get_training_history()
+                
+                if history:
+                    epochs = list(range(1, len(history) + 1))
+                    
+                    # Add accuracy traces
+                    fig.add_trace(go.Scatter(
+                        x=epochs,
+                        y=[m['train_acc'] for m in history],
+                        mode='lines+markers',
+                        name='Train Accuracy',
+                        line=dict(width=2, color='blue')
+                    ))
+                    
+                    fig.add_trace(go.Scatter(
+                        x=epochs,
+                        y=[m['val_acc'] for m in history],
+                        mode='lines+markers',
+                        name='Validation Accuracy',
+                        line=dict(width=2, color='red')
+                    ))
+                    
+                    fig.update_layout(
+                        title="Training Progress",
+                        xaxis_title="Epoch",
+                        yaxis_title="Accuracy (%)",
+                        height=300,
+                        template="plotly_dark",
+                        showlegend=True
+                    )
+                    
+                    plot_placeholder.plotly_chart(fig, use_container_width=True)
+        
         # Training button
         if st.button("Start Training"):
             try:
                 from .ml_model import SecurityMLTrainer
                 
-                with st.spinner("Training model..."):
-                    trainer = SecurityMLTrainer()
-                    trainer.train(num_epochs=epochs)
-                    st.success("Training completed successfully!")
+                # Clear previous logs
+                st.session_state.training_logs = []
+                st.session_state.current_metrics = None
+                st.session_state.training_progress = 0
                 
-                # Show training results
+                trainer = SecurityMLTrainer()
+                trainer.train(num_epochs=epochs, progress_callback=update_training_progress)
+                
+                # Show final results
                 self.show_training_results(trainer.results_dir)
+                
             except Exception as e:
                 st.error(f"Error during training: {str(e)}")
     
+    def get_training_history(self):
+        """Get training history from the latest run"""
+        results_dir = Path(__file__).parent / "ml_results"
+        runs = list(results_dir.glob("*"))
+        
+        if not runs:
+            return None
+            
+        latest_run = max(runs, key=lambda x: x.stat().st_mtime)
+        history_file = latest_run / "training_history.json"
+        
+        if history_file.exists():
+            with open(history_file, "r") as f:
+                return json.load(f)
+        
+        return None
+
     def show_training_results(self, results_dir):
         """Display training results and metrics"""
         st.subheader("📈 Training Results")
